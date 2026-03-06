@@ -38,22 +38,18 @@ def list_todos(
     offset: int = Query(default=0, ge=0),
     # done 可选过滤：None 表示不过滤
     done: Optional[bool] = Query(default=None),
+    service: TodoService = Depends(get_todo_service)
 ) -> TodoListResponse:
-    #假数据，先跑通，后换数据库
-    fake_data = [
-        TodoItem(id=1, title="Learn FastAPI basics", done=False),
-        TodoItem(id=2, title="Build Todo API", done=True)
-    ]
-
-    # 按done过滤
-    if done is not None:
-        fake_data = [item for item in fake_data if item.done == done]
+    
+    # 路由层只处理HTTP参数与响应组装， 业务逻辑交给 service 
+    rows = service.list_todos(limit=limit, offset=offset, done=done)
+    items = [TodoItem(**row) for row in rows]
 
     return TodoListResponse(
-        items=fake_data[offset : offset + limit],
+        items=items,
         limit=limit,
         offset=offset,
-        total=len(fake_data),
+        total=len(items),
     )
 
 @router.post("", summary="Create todo", response_model=TodoCreateResponse, status_code=201)
