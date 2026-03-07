@@ -31,27 +31,6 @@ class TodoCreateResponse(BaseModel):
     title: str
     done: bool
 
-@router.get("", summary="List todos", response_model=TodoListResponse)
-def list_todos(
-    #limit/offset: 分页模式
-    limit: int = Query(default=10, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
-    # done 可选过滤：None 表示不过滤
-    done: Optional[bool] = Query(default=None),
-    service: TodoService = Depends(get_todo_service)
-) -> TodoListResponse:
-    
-    # 路由层只处理HTTP参数与响应组装， 业务逻辑交给 service 
-    rows = service.list_todos(limit=limit, offset=offset, done=done)
-    items = [TodoItem(**row) for row in rows]
-
-    return TodoListResponse(
-        items=items,
-        limit=limit,
-        offset=offset,
-        total=len(items),
-    )
-
 @router.post("", summary="Create todo", response_model=TodoCreateResponse, status_code=201)
 def create_todo(payload: TodoCreate) -> TodoCreateResponse:
     new_todo = TodoCreateResponse(id=3, title=payload.title, done=False)
