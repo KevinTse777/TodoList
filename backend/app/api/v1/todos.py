@@ -32,9 +32,12 @@ class TodoCreateResponse(BaseModel):
     done: bool
 
 @router.post("", summary="Create todo", response_model=TodoCreateResponse, status_code=201)
-def create_todo(payload: TodoCreate) -> TodoCreateResponse:
-    new_todo = TodoCreateResponse(id=3, title=payload.title, done=False)
-    return new_todo
+def create_todo(
+    payload: TodoCreate,
+    service: TodoService = Depends(get_todo_service)
+) -> TodoCreateResponse:
+    row = service.create_todo(title=payload.title, owner_id=1)
+    return TodoCreateResponse(**row)
 
 @router.get("", summary="List todos", response_model=TodoListResponse)
 def list_todos(
@@ -44,6 +47,7 @@ def list_todos(
     service: TodoService = Depends(get_todo_service),
 ) -> TodoListResponse:
     # 路由层只处理HTTP参数与响应组装，业务逻辑交给service
-    rows = service.list_todos(limit=limit, offset=offset, done=done)
+    # 临时方案 owner锁定1
+    rows = service.list_todos(limit=limit, offset=offset, done=done, owner_id=1)
     items = [TodoItem(**row) for row in rows]
     return TodoListResponse(items=items, limit=limit, offset=offset, total=len(items))
