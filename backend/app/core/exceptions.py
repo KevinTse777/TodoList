@@ -13,6 +13,21 @@ class ErrorResponse(BaseModel):
     details: object | None = None
 
 
+class AppException(Exception):
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        status_code: int = 400,
+        details: object | None = None
+    ) -> None :
+        self.code = code
+        self.message = message
+        self.status_code = status_code
+        self.details = details
+        super().__init__(message)
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def handle_validation_error(
@@ -26,6 +41,15 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
         return JSONResponse(status_code=422, content=payload.model_dump())
     
+    @app.exception_handler(AppException)
+    async def handle_app_exception(request: Request, exc: AppException) -> JSONResponse:
+        payload = ErrorResponse(
+            code=exc.code,
+            message=exc.message,
+            details=exc.details,
+        )
+        return JSONResponse(status_code=exc.status_code, content=payload.model_dump())
+    
 
     @app.exception_handler(Exception)
     async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
@@ -36,3 +60,5 @@ def register_exception_handlers(app: FastAPI) -> None:
             details=None,
         )
         return JSONResponse(status_code=500, content=payload.model_dump())
+    
+
