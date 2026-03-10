@@ -3,6 +3,10 @@ from app.repositories.user_repository import UserRepository
 from app.core.exceptions import AppException
 from app.core.security import hash_password
 from app.repositories.user_repository import UserRepository
+from app.core.security import hash_password, verify_password
+from app.repositories.user_repository import UserRepository
+from app.core.exceptions import AppException
+
 
 class AuthService:
     def __init__(self, user_repo: UserRepository) -> None:
@@ -22,4 +26,15 @@ class AuthService:
         password_hash = hash_password(password)
         user = self.user_repo.create_user(username=username, password_hash=password_hash)
 
+        return {"id": user.id, "username": user.username}
+
+
+    def authenticate_user(self, username: str, password: str) -> dict:
+        user = self.user_repo.get_by_username(username)
+        if user is None or not verify_password(password, user.password_hash):
+            raise AppException(
+                code="INVALID_CREDENTIALS",
+                message="Incorrect username or password",
+                status_code=401,
+            )
         return {"id": user.id, "username": user.username}
