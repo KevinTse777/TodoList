@@ -26,9 +26,9 @@
 - [x] 第二次迁移演练（字段变更）
 
 ## E. 容器与部署
-- [ ] Dockerfile（backend）
-- [ ] docker-compose（db/backend/frontend）
-- [ ] 本地一键启动与迁移命令
+- [x] Dockerfile（backend）
+- [x] docker-compose（db/backend/frontend）
+- [x] 本地一键启动与迁移命令
 - [ ] 部署说明（Nginx/ENV/卷/启动方式）
 
 ## F. 代码注释标准（从现在开始执行）
@@ -38,4 +38,4 @@
 
 ## G. 日志与可观测性
 - [x] 请求日志中间件（request_id/路径/状态码/耗时）
-- [ ] 健康检查日志联动验证
+- [x] 健康检查日志联动验证

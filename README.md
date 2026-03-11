@@ -1,55 +1,60 @@
 # FastAPI Todo (学习版)
 
-## 关闭后如何重新启动后端服务
+一个轻量的 Todo 学习项目：后端是 FastAPI + MySQL + Alembic，前端是 Vue 3（极简浅色 iOS 质感）。
 
-1. 打开终端并进入项目目录：
+## Quickstart（Docker Compose）
+
+1. 进入项目目录
 
 ```bash
 cd /Users/tse/Documents/fastapi
 ```
 
-2. 激活 conda 环境：
+2. 一键构建并启动（前后端 + 数据库）
 
 ```bash
-conda activate fastapi-todo
+docker compose up -d --build
 ```
 
-3. 启动 FastAPI（开发模式，热重载）：
+3. 查看服务状态
 
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000 --app-dir backend
+docker compose ps
 ```
 
-4. 验证服务是否启动成功：
+4. 访问地址
+
+- 前端：http://127.0.0.1:5173
+- 后端健康检查：http://127.0.0.1:8000/api/v1/healthz
+- Swagger UI：http://127.0.0.1:8000/docs
+
+5. 停止服务
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/healthz
+docker compose down
 ```
 
-预期返回：
+## 常用命令
 
-```json
-{"status":"ok"}
+查看后端日志：
+
+```bash
+docker compose logs -f backend
 ```
 
-5. 打开文档页面：
+查看前端日志：
 
-- Swagger UI: http://127.0.0.1:8000/docs
-- ReDoc: http://127.0.0.1:8000/redoc
+```bash
+docker compose logs -f frontend
+```
 
-## 如何停止服务
+仅重建前端：
 
-- 在运行 `uvicorn` 的终端中按 `Ctrl + C`。
+```bash
+docker compose up -d --build frontend
+```
 
-## 用docker 启动mysql
+## 说明
 
-删掉旧的同名容器
-启动一个新的
-docker run --name todo-mysql \
-  -e MYSQL_ROOT_PASSWORD=rootpass \
-  -e MYSQL_DATABASE=todo_db \
-  -e MYSQL_USER=todo_user \
-  -e MYSQL_PASSWORD=todo_pass \
-  -p 3306:3306 \
-  -d mysql:8.4
-
+- `backend/start.sh` 已包含 `alembic upgrade head`，容器启动会自动迁移数据库。
+- 前端默认请求 `http://localhost:8000` 的 API，无需修改后端代码。
