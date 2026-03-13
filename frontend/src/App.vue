@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { createTodo, fetchMe, fetchTodos, loginUser, registerUser } from './api'
+import { createTodo, fetchMe, fetchTodos, loginUser, registerUser, updateTodoDone } from './api'
 
 const token = ref(localStorage.getItem('todo_token') || '')
 const currentUser = ref(null)
@@ -8,6 +8,7 @@ const todos = ref([])
 const loadingTodos = ref(false)
 const authLoading = ref(false)
 const todoCreating = ref(false)
+const updatingTodoId = ref(null)
 const errorMessage = ref('')
 const authMode = ref('login')
 const todoFilter = ref('open')
@@ -113,6 +114,20 @@ async function submitTodo() {
   }
 }
 
+async function toggleDone(item) {
+  if (updatingTodoId.value !== null) return
+
+  updatingTodoId.value = item.id
+  try {
+    await updateTodoDone(token.value, item.id, !item.done)
+    await loadTodos()
+  } catch (error) {
+    setError(error.message)
+  } finally {
+    updatingTodoId.value = null
+  }
+}
+
 function logout() {
   clearSession()
 }
@@ -136,18 +151,10 @@ onMounted(bootstrap)
 
       <section v-if="!isLoggedIn" class="surface auth-surface">
         <div class="mode-tabs">
-          <button
-            class="tab-btn"
-            :class="{ active: authMode === 'login' }"
-            @click="authMode = 'login'"
-          >
+          <button class="tab-btn" :class="{ active: authMode === 'login' }" @click="authMode = 'login'">
             登录
           </button>
-          <button
-            class="tab-btn"
-            :class="{ active: authMode === 'register' }"
-            @click="authMode = 'register'"
-          >
+          <button class="tab-btn" :class="{ active: authMode === 'register' }" @click="authMode = 'register'">
             注册
           </button>
         </div>
@@ -219,9 +226,21 @@ onMounted(bootstrap)
             <small>{{ filteredLabel }} · {{ todos.length }} 项</small>
           </div>
 
-          <ul class="todo-list" v-if="!loadingTodos && todos.length">
-            <li v-for="item in todos" :key="item.id" class="todo-item" :class="{ done: item.done }">
-              <span class="status-dot" />
+          <ul v-if="!loadingTodos && todos.length" class="todo-list">
+            <li
+              v-for="item in todos"
+              :key="item.id"
+              class="todo-item"
+              :class="{ done: item.done, disabled: updatingTodoId === item.id }"
+            >
+              <button
+                class="check-btn"
+                :class="{ checked: item.done }"
+                :disabled="updatingTodoId !== null"
+                @click="toggleDone(item)"
+              >
+                <span class="check-mark">✓</span>
+              </button>
               <span class="title">{{ item.title }}</span>
             </li>
           </ul>

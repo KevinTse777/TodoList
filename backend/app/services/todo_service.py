@@ -15,4 +15,9 @@ class TodoService:
         todo = self.repo.create_todo(title=title,owner_id=owner_id)
         return {"id": todo.id, "title": todo.title, "done": todo.done}
     
+    def update_todo_done(self, todo_id: int, owner_id: int, done: bool) -> dict | None:
+        todo = self.repo.update_done(todo_id = todo_id, owner_id=owner_id, done=done)
+        if todo is None:
+            return None
+        return{"id": todo.id, "title": todo.title, "done": todo.done}
     

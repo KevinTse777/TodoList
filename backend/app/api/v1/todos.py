@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from app.services.todo_service import TodoService
 from app.api.deps import get_todo_service, get_current_user
 from app.models.user import User
+from app.core.exceptions import AppException
 
 router = APIRouter(prefix="/api/v1/todos", tags=["todo"])
 
@@ -32,6 +33,9 @@ class TodoCreateResponse(BaseModel):
     title: str
     done: bool
 
+class TodoDoneUpdate(BaseModel):
+    done: bool
+
 @router.post("", summary="Create todo", response_model=TodoCreateResponse, status_code=201)
 def create_todo(
     payload: TodoCreate,
@@ -56,3 +60,24 @@ def list_todos(
     rows = service.list_todos(limit=limit, offset=offset, done=done, owner_id=current_user.id)
     items = [TodoItem(**row) for row in rows]
     return TodoListResponse(items=items, limit=limit, offset=offset, total=len(items))
+
+
+@router.patch("/{todo_id}/done", summary="Update todo done status", response_model=TodoCreateResponse)
+def update_todo_done(
+    todo_id: int,
+    payload: TodoDoneUpdate,
+    service: TodoService = Depends(get_todo_service),
+    current_user: User = Depends(get_current_user),
+) -> TodoCreateResponse:
+    row = service.update_todo_done(
+        todo_id=todo_id,
+        owner_id=current_user.id,
+        done=payload.done
+    )
+    if row is None:
+        raise AppException(
+            code="TODO_NOT_FOUND",
+            message="Todo not found",
+            status_code=404,
+        )
+    return TodoCreateResponse(**row)

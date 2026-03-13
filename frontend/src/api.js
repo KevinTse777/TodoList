@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 
 function buildHeaders(token, extra = {}) {
   return {
@@ -57,5 +57,13 @@ export async function createTodo(token, title) {
     method: 'POST',
     headers: buildHeaders(token, { 'Content-Type': 'application/json' }),
     body: JSON.stringify({ title })
+  })
+}
+
+export async function updateTodoDone(token, todoId, done) {
+  return request(`/api/v1/todos/${todoId}/done`, {
+    method: 'PATCH',
+    headers: buildHeaders(token, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ done })
   })
 }

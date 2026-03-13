@@ -26,3 +26,15 @@ class TodoRepository:
         self.db.commit()
         self.db.refresh(todo)
         return todo
+    
+    def update_done(self, todo_id: int, owner_id: int, done: bool) -> Todo | None:
+        # 只允许更新当前用户自己的 todo
+        stmt = select(Todo).where(Todo.id == todo_id, Todo.owner_id == owner_id)
+        todo = self.db.scalar(stmt)
+        if todo is None:
+            return None
+        
+        todo.done = done
+        self.db.commit()
+        self.db.refresh(todo)
+        return todo
